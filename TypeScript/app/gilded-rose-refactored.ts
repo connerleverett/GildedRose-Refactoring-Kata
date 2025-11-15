@@ -21,52 +21,64 @@ export class GildedRose {
     this.items = items;
   }
 
-  handleAgedBrie(item) {
+  private updateAgedBrie(item: Item) {
     if (item.quality < 50) {
-      item.quality = item.quality + 1;
+      item.quality += 1;
     }
   }
 
-  handleBackstagePass(item) {
+  private updateBackstagePasses(item: Item) {
     if (item.quality >= 50) {
       return;
     }
+
     if (item.sellIn < 6) {
       item.quality = Math.min(50, item.quality + 3);
     } else if (item.sellIn < 11) {
       item.quality = Math.min(50, item.quality + 2);
     } else {
-      item.quality = Math.min(50, item.quality + 1);
+      item.quality += 1;
+    }
+  }
+
+  private updateRegularItem(item: Item) {
+    if (item.quality > 0) {
+      item.quality -= 1;
+    }
+  }
+
+  private updateExpiredItem(item: Item) {
+    if (item.name === AGED_BRIE) {
+      this.updateAgedBrie(item);
+    } else if (item.name === BACKSTAGE_PASSES) {
+      item.quality = 0;
+    } else if (item.name !== SULFURAS) {
+      this.updateRegularItem(item);
     }
   }
 
   updateQuality() {
     for (const item of this.items) {
+      // Skip Sulfuras entirely
       if (item.name === SULFURAS) {
         continue;
       }
 
+      // Update quality based on item type (before expiration)
       if (item.name === AGED_BRIE) {
-        this.handleAgedBrie(item);
+        this.updateAgedBrie(item);
       } else if (item.name === BACKSTAGE_PASSES) {
-        this.handleBackstagePass(item);
+        this.updateBackstagePasses(item);
       } else {
-        item.quality = Math.max(0, item.quality - 1);
+        this.updateRegularItem(item);
       }
 
-      item.sellIn = item.sellIn - 1;
+      // Decrease sellIn
+      item.sellIn -= 1;
 
-      if (item.sellIn >= 0) {
-        continue;
-      }
-
-      // These items are expired
-      if (item.name === AGED_BRIE) {
-        item.quality = Math.min(50, item.quality + 1);
-      } else if (item.name === BACKSTAGE_PASSES) {
-        item.quality = 0;
-      } else {
-        item.quality = Math.max(0, item.quality - 1);
+      // Handle expired items
+      if (item.sellIn < 0) {
+        this.updateExpiredItem(item);
       }
     }
 
