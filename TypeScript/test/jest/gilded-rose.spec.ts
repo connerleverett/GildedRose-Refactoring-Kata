@@ -4,7 +4,7 @@ describe("Gilded Rose", () => {
   it("should foo", () => {
     const gildedRose = new GildedRose([new Item("foo", 0, 0)]);
     const items = gildedRose.updateQuality();
-
+    console.log("hi");
     expect(items[0].name).toBe("foo");
   });
 });
